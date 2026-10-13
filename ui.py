@@ -77,27 +77,27 @@ _OS = platform.system()  # "Windows" | "Darwin" | "Linux"
 
 
 class C:
-    BG        = "#00060a"
-    PANEL     = "#010d14"
-    PANEL2    = "#010f18"
-    BORDER    = "#0d3347"
-    BORDER_B  = "#1a5c7a"
-    BORDER_A  = "#0f4060"
-    PRI       = "#00d4ff"
-    PRI_DIM   = "#007a99"
-    PRI_GHO   = "#001f2e"
-    ACC       = "#ff6b00"
-    ACC2      = "#ffcc00"
-    GREEN     = "#00ff88"
-    GREEN_D   = "#00aa55"
-    RED       = "#ff3355"
-    MUTED_C   = "#ff3366"
-    TEXT      = "#8ffcff"
-    TEXT_DIM  = "#3a8a9a"
-    TEXT_MED  = "#5ab8cc"
-    WHITE     = "#d8f8ff"
-    DARK      = "#000d14"
-    BAR_BG    = "#011520"
+    BG        = "#070709"   # AMG Night Edition — OLED black
+    PANEL     = "#0E0E12"
+    PANEL2    = "#131318"
+    BORDER    = "#232330"
+    BORDER_B  = "#2E2E40"
+    BORDER_A  = "#1A1A26"
+    PRI       = "#C9A84C"   # AMG gold
+    PRI_DIM   = "#8A6E2E"
+    PRI_GHO   = "#1A1408"
+    ACC       = "#B8C2CC"   # platinum
+    ACC2      = "#E8EDF2"
+    GREEN     = "#22C97A"
+    GREEN_D   = "#178F55"
+    RED       = "#FF4466"
+    MUTED_C   = "#FF4488"
+    TEXT      = "#EEF0F4"
+    TEXT_DIM  = "#3E4050"
+    TEXT_MED  = "#7A7D8C"
+    WHITE     = "#F5F6F8"
+    DARK      = "#040406"
+    BAR_BG    = "#0A0A0E"
 
 
 # Keys tied to the accent colour — status colours (ACC, GREEN, RED…) stay fixed
@@ -1085,6 +1085,72 @@ def _fmt_size(size: int) -> str:
     elif size < 1024**2: return f"{size/1024:.1f} KB"
     elif size < 1024**3: return f"{size/1024**2:.1f} MB"
     else:                return f"{size/1024**3:.1f} GB"
+
+
+class SuggestionChips(QWidget):
+    """3-4 tappable contextual follow-up suggestion chips — AMG luxury style."""
+    chip_clicked = pyqtSignal(str)
+    CHIP_H   = 30
+    CHIP_PAD = 12
+    STAGGER  = 60   # ms between each chip appearing
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._chips: list[str] = []
+        self._btns:  list[QPushButton] = []
+        self._timers: list[QTimer] = []
+        self._layout = QHBoxLayout(self)
+        self._layout.setContentsMargins(0, 4, 0, 4)
+        self._layout.setSpacing(7)
+        self._layout.addStretch()
+        self.setVisible(False)
+
+    def set_suggestions(self, suggestions: list[str]) -> None:
+        self._clear()
+        if not suggestions:
+            self.setVisible(False)
+            return
+        for i, text in enumerate(suggestions[:4]):
+            btn = self._make_chip(text)
+            btn.setVisible(False)
+            self._layout.insertWidget(self._layout.count() - 1, btn)
+            self._btns.append(btn)
+            t = QTimer(self)
+            t.setSingleShot(True)
+            t.timeout.connect(lambda b=btn: b.setVisible(True))
+            t.start(i * self.STAGGER)
+            self._timers.append(t)
+        self.setVisible(True)
+
+    def _make_chip(self, text: str) -> QPushButton:
+        btn = QPushButton(text)
+        btn.setFixedHeight(self.CHIP_H)
+        btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn.setStyleSheet(f"""
+            QPushButton {{
+                background: rgba(201,168,76,0.07);
+                border: 0.5px solid rgba(201,168,76,0.30);
+                border-radius: 2px; color: {C.PRI};
+                font-size: 11px; font-weight: 500;
+                padding: 0 {self.CHIP_PAD}px; letter-spacing: 0.3px;
+            }}
+            QPushButton:hover {{
+                background: rgba(201,168,76,0.15);
+                border-color: rgba(201,168,76,0.55);
+            }}
+        """)
+        btn.clicked.connect(lambda: self.chip_clicked.emit(text))
+        return btn
+
+    def _clear(self) -> None:
+        for t in self._timers: t.stop()
+        self._timers.clear()
+        for b in self._btns:
+            b.hide()
+            self._layout.removeWidget(b)
+            b.deleteLater()
+        self._btns.clear()
+        self._chips.clear()
 
 
 class FileDropZone(QWidget):
@@ -2808,6 +2874,7 @@ class MainWindow(QMainWindow):
     _quiz_sig       = pyqtSignal(str, object, object)  # (topic, questions, grader)
     _quiz_hide_sig  = pyqtSignal()
     _review_sig     = pyqtSignal(str, str, object, object)  # document review payload
+    _suggestions_sig = pyqtSignal(list)                     # thread-safe suggestion chips update
 
     def __init__(self, face_path: str):
         super().__init__()
@@ -3083,6 +3150,7 @@ class MainWindow(QMainWindow):
         self._quiz_sig.connect(self._show_quiz)
         self._quiz_hide_sig.connect(self._hide_quiz)
         self._review_sig.connect(self._show_review)
+        self._suggestions_sig.connect(self._suggestion_chips.set_suggestions)
         self._cam_stop = threading.Event()
 
         # Camera preview overlay (child of central widget, positioned in resizeEvent)
@@ -3969,6 +4037,9 @@ class MainWindow(QMainWindow):
 
         lay.addWidget(_sec("COMMAND INPUT"))
         lay.addLayout(self._build_input_row())
+        self._suggestion_chips = SuggestionChips()
+        self._suggestion_chips.chip_clicked.connect(self._on_chip_clicked)
+        lay.addWidget(self._suggestion_chips)
 
         self._interrupt_btn = QPushButton("✋  INTERRUPT  [ESC]")
         self._interrupt_btn.setFixedHeight(34)
@@ -5240,9 +5311,18 @@ class MainWindow(QMainWindow):
         txt = self._input.text().strip()
         if not txt: return
         self._input.clear()
+        self._suggestion_chips.set_suggestions([])
         self._log.append_log(f"You: {txt}")
         if self.on_text_command:
             threading.Thread(target=self.on_text_command, args=(txt,), daemon=True).start()
+
+    def show_suggestions(self, suggestions: list[str]) -> None:
+        """Thread-safe: display 3-4 follow-up suggestion chips after an AI response."""
+        self._suggestions_sig.emit(list(suggestions or []))
+
+    def _on_chip_clicked(self, text: str) -> None:
+        self._input.setText(text)
+        self._send()
 
     def _apply_state(self, state: str):
         self.hud.state    = state
@@ -5427,6 +5507,10 @@ class NovaUI:
         """Thread-safe: display content in the panel below the HUD."""
         self._win._content_sig.emit(title[:48], text[:4000])
 
+    def show_suggestions(self, suggestions: list[str]) -> None:
+        """Thread-safe: display 3-4 follow-up suggestion chips after an AI response."""
+        self._win.show_suggestions(suggestions)
+
     def show_quiz(self, topic: str, questions, grade=None) -> None:
         """Thread-safe: put an interactive quiz on the board.
 
@@ -5509,3 +5593,4 @@ class NovaUI:
     def stop_speaking(self):
         if not self.muted:
             self.set_state("LISTENING")
+

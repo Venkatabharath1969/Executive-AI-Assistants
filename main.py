@@ -79,6 +79,11 @@ def get_base_dir():
 BASE_DIR        = get_base_dir()
 API_CONFIG_PATH = BASE_DIR / "config" / "api_keys.json"
 PROMPT_PATH     = BASE_DIR / "core" / "prompt.txt"
+
+# ── Contextual follow-up suggestion engine ───────────────────────────────────
+from core.suggestions import generate as _generate_suggestions  # noqa: E402
+
+
 # The conversation's model. A NAME, not a decision: the ladder lives in
 # core/gemini.py and this is only whichever rung is currently in use, kept here
 # as a module attribute because plugins read it (chat_takeover asks main for it
@@ -1284,6 +1289,15 @@ class NovaLive:
                                 self.ui.write_log(f"{self._asst_name}: {full_out}")
                                 self._session_log.append(f"{self._asst_name}: {full_out}")
                             out_buf = []
+
+                            if full_out and full_in:
+                                try:
+                                    chips = _generate_suggestions(
+                                        full_in, full_out, list(self._session_log)
+                                    )
+                                    self.ui.show_suggestions(chips)
+                                except Exception:
+                                    pass
 
                             if self._vision_close_pending:
                                 # This turn_complete IS the vision answer — close camera + release busy flag

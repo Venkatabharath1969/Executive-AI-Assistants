@@ -8,11 +8,11 @@ import re
 
 _SUGGESTION_TEMPLATES = {
     "calendar": [
+        "What action items came from the last {meeting} meeting?",
         "What is this meeting about?",
         "Who else is attending?",
-        "Do I have any preparation notes?",
         "What was discussed in the previous meeting with {person}?",
-        "What action items came from the last {meeting} meeting?",
+        "Do I have any preparation notes?",
     ],
     "email": [
         "Reply to {person}?",
@@ -36,7 +36,7 @@ _SUGGESTION_TEMPLATES = {
         "Tell me more about this.",
         "What should I prioritise today?",
         "Any related action items?",
-        "Search for anything about this topic.",
+        "What can you tell me about {person}?",
     ],
 }
 
@@ -52,7 +52,7 @@ class _SafeMap(dict):
 
 def _generate_suggestions(query: str, response: str, history: list[dict]) -> list[str]:
     q_lower = (query + " " + response).lower()
-    if any(w in q_lower for w in ("meeting", "calendar", "schedule", "agenda", "appointment")):
+    if any(w in q_lower for w in ("meeting", "calendar", "schedule", "agenda", "appointment", "1:1", "one-on-one")):
         intent = "calendar"
     elif any(w in q_lower for w in ("email", "inbox", "outlook", "message", "mail")):
         intent = "email"

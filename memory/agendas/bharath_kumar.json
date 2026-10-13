@@ -1,0 +1,48 @@
+{
+  "person": "Bharath Kumar",
+  "week": "2026-W42",
+  "items": [
+    {
+      "date": "2026-10-13",
+      "time": "09:00",
+      "title": "Board Strategy Review",
+      "attendees": ["Bharath Kumar", "Sarah Johnson", "Michael Chen"],
+      "notes": "Q4 roadmap sign-off. Review slides prepared by Sarah's team."
+    },
+    {
+      "date": "2026-10-13",
+      "time": "14:00",
+      "title": "Executive Leadership Sync",
+      "attendees": ["Bharath Kumar", "All C-Suite"],
+      "notes": "Monthly alignment call. Focus: hiring freeze and product pivot."
+    },
+    {
+      "date": "2026-10-14",
+      "time": "10:00",
+      "title": "Investor Relations Call",
+      "attendees": ["Bharath Kumar", "CFO"],
+      "notes": "Series C update. Prepare latest ARR and burn rate figures."
+    },
+    {
+      "date": "2026-10-15",
+      "time": "11:00",
+      "title": "1:1 with Head of Engineering",
+      "attendees": ["Bharath Kumar", "Alex Reyes"],
+      "notes": "Technical debt review and sprint 42 velocity discussion."
+    },
+    {
+      "date": "2026-10-16",
+      "time": "15:00",
+      "title": "Quarterly All-Hands",
+      "attendees": ["Bharath Kumar", "All Staff"],
+      "notes": "Company performance, product milestones, and team recognition."
+    },
+    {
+      "date": "2026-10-17",
+      "time": "09:30",
+      "title": "Partnership Review — Mercedes-Benz",
+      "attendees": ["Bharath Kumar", "Partner Lead"],
+      "notes": "MoU renewal discussion. Legal to attend last 30 minutes."
+    }
+  ]
+}

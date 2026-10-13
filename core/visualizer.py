@@ -52,14 +52,14 @@ class QuantumVisualizer(QWidget):
         self._core_scale = 1.0
         self._pulse_phase = 0.0
 
-        # Colors (cyan / azure cybernetic palette)
-        self.col_primary = QColor("#00d4ff")
-        self.col_accent = QColor("#00ffb4")
-        self.col_deep = QColor("#021b2d")
-        self.col_bg = QColor("#000810")
-        self.col_glow = QColor(0, 212, 255, 60)
-        self.col_warning = QColor("#ff8800")
-        self.col_muted = QColor("#ff3366")
+        # Colors (AMG Night Edition — gold/platinum luxury palette)
+        self.col_primary = QColor("#C9A84C")   # AMG gold
+        self.col_accent  = QColor("#E8EDF2")   # platinum highlight
+        self.col_deep    = QColor("#0E0E12")   # panel dark
+        self.col_bg      = QColor("#070709")   # OLED black
+        self.col_glow    = QColor(201, 168, 76, 55)
+        self.col_warning = QColor("#FF4466")
+        self.col_muted   = QColor("#FF4488")
 
         # Orbital particles
         self._particles = []
