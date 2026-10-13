@@ -1292,9 +1292,13 @@ class NovaLive:
 
                             if full_out and full_in:
                                 try:
-                                    chips = _generate_suggestions(
-                                        full_in, full_out, list(self._session_log)
-                                    )
+                                    hist_dicts: list[dict] = []
+                                    log = list(self._session_log)
+                                    for i in range(0, len(log) - 1, 2):
+                                        q = log[i].split(": ", 1)[-1]
+                                        r = log[i + 1].split(": ", 1)[-1] if i + 1 < len(log) else ""
+                                        hist_dicts.append({"query": q, "response": r})
+                                    chips = _generate_suggestions(full_in, full_out, hist_dicts)
                                     self.ui.show_suggestions(chips)
                                 except Exception:
                                     pass
